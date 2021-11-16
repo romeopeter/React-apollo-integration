@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import { useMutation, gql } from "@apollo/client";
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 export default function CreateLink() {
 	const [formState, setFormState] = useState({ description: "", url: "" });
 
-	const history = useHistory()
+	const history = useNavigate();
 
 	const CREATE_LINK_MUTATION = gql`
 		mutation PostMutation($url: String!, $description: String!) {
