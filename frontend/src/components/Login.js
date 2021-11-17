@@ -1,5 +1,7 @@
-import React, {useState} from "react";
-import {useNavigate} from "react-router-dom";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { gql, useMutation } from "@apollo/client";
+import { AUTH_TOKEN } from '../constants';
 
 export default function Login() {
 	const history = useNavigate();
@@ -9,6 +11,53 @@ export default function Login() {
 		email: "",
 		password: "",
 		name: "",
+	});
+
+	const SIGNUP_MUTATION = gql`
+		mutation SignupMutation(
+			$email: string
+			$password: string
+			$name: string
+		) {
+			signup(email: $email, password: $password, name: $name) {
+				token
+				user {
+					name
+					email
+				}
+			}
+		}
+	`;
+
+	const [signup] = useMutation(SIGNUP_MUTATION, {
+		variables: {
+			email: formState.email,
+			password: formState.password,
+			name: formState.password,
+		},
+		onCompleted: ({ signup }) => {
+			localStorage.setItem(AUTH_TOKEN, signup.token);
+			history.push("/create");
+		},
+	});
+
+	const LOGIN_MUTATION = gql`
+		mutation LoginMutation($email: string, $password: string) {
+			login(email: $email, password: $password) {
+				token
+			}
+		}
+	`;
+
+	const [login] = useMutation(LOGIN_MUTATION, {
+		variables: {
+			email: formState.email,
+			password: formState.password,
+		},
+		onCompleted: ({ login }) => {
+			localStorage.setItem(AUTH_TOKEN, signup.token);
+			history.push("/");
+		},
 	});
 
 	return (
@@ -54,7 +103,7 @@ export default function Login() {
 			<div className="flex mt3">
 				<button
 					className="pointer mr2 button"
-					onClick={() => console.log("onClick")}
+					onClick={() => (formState.login ? login : signup)}
 				>
 					{formState.login ? "login" : "create account"}
 				</button>
