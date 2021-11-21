@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { gql, useMutation } from "@apollo/client";
-import { AUTH_TOKEN } from '../constants';
+import { AUTH_TOKEN } from "../constants";
 
 export default function Login() {
-	const history = useNavigate();
+	let navigate = useNavigate();
 
 	const [formState, setFormState] = useState({
 		login: true,
@@ -15,9 +15,9 @@ export default function Login() {
 
 	const SIGNUP_MUTATION = gql`
 		mutation SignupMutation(
-			$email: string
-			$password: string
-			$name: string
+			$email: String!
+			$password: String!
+			$name: String!
 		) {
 			signup(email: $email, password: $password, name: $name) {
 				token
@@ -29,17 +29,20 @@ export default function Login() {
 		}
 	`;
 
-	const [signup] = useMutation(SIGNUP_MUTATION, {
-		variables: {
-			email: formState.email,
-			password: formState.password,
-			name: formState.password,
-		},
-		onCompleted: ({ signup }) => {
-			localStorage.setItem(AUTH_TOKEN, signup.token);
-			history.push("/create");
-		},
-	});
+	let [signup, { signupData, signupLoading, error: signupError }] = useMutation(
+		SIGNUP_MUTATION,
+		{
+			variables: {
+				email: formState.email,
+				password: formState.password,
+				name: formState.password,
+			},
+			onCompleted: ({ signup }) => {
+				localStorage.setItem(AUTH_TOKEN, signup.token);
+				navigate("/create");
+			},
+		}
+	);
 
 	const LOGIN_MUTATION = gql`
 		mutation LoginMutation($email: string, $password: string) {
@@ -49,78 +52,89 @@ export default function Login() {
 		}
 	`;
 
-	const [login] = useMutation(LOGIN_MUTATION, {
-		variables: {
-			email: formState.email,
-			password: formState.password,
-		},
-		onCompleted: ({ login }) => {
-			localStorage.setItem(AUTH_TOKEN, signup.token);
-			history.push("/");
-		},
-	});
+	let [login, { loginData, loginLoading, error:loginError }] = useMutation(
+		LOGIN_MUTATION,
+		{
+			variables: {
+				email: formState.email,
+				password: formState.password,
+			},
+			onCompleted: ({ login }) => {
+				localStorage.setItem(AUTH_TOKEN, signup.token);
+				navigate("/");
+			},
+		}
+	);
+
+	if (signupError) return <p>Submition error: {signupError.message}</p>;
+	if (loginError) return <p>Submition error: {signupError.message}</p>;
 
 	return (
 		<div>
 			<h4 className="mv3">{formState.login ? "Login" : "Sign Up"}</h4>
-			<div className="flex flex-column">
-				{!formState.login && (
+			<form onSubmit={(e) => e.preventDefault()}>
+				<div className="flex flex-column">
+					{!formState.login && (
+						<input
+							value={formState.name}
+							onChange={(e) =>
+								setFormState({
+									...formState,
+									name: e.target.value,
+								})
+							}
+							type="text"
+							placeholder="Your name"
+						/>
+					)}
 					<input
-						value={formState.name}
+						value={formState.email}
 						onChange={(e) =>
 							setFormState({
 								...formState,
-								name: e.target.value,
+								email: e.target.value,
 							})
 						}
 						type="text"
-						placeholder="Your name"
+						placeholder="Your email address"
 					/>
-				)}
-				<input
-					value={formState.email}
-					onChange={(e) =>
-						setFormState({
-							...formState,
-							email: e.target.value,
-						})
-					}
-					type="text"
-					placeholder="Your email address"
-				/>
-				<input
-					value={formState.password}
-					onChange={(e) =>
-						setFormState({
-							...formState,
-							password: e.target.value,
-						})
-					}
-					type="password"
-					placeholder="Choose a safe password"
-				/>
-			</div>
-			<div className="flex mt3">
-				<button
-					className="pointer mr2 button"
-					onClick={() => (formState.login ? login : signup)}
-				>
-					{formState.login ? "login" : "create account"}
-				</button>
-				<button
-					className="pointer button"
-					onClick={(e) =>
-						setFormState({
-							...formState,
-							login: !formState.login,
-						})
-					}
-				>
-					{formState.login
-						? "need to create an account?"
-						: "already have an account?"}
-				</button>
-			</div>
+					<input
+						value={formState.password}
+						onChange={(e) =>
+							setFormState({
+								...formState,
+								password: e.target.value,
+							})
+						}
+						type="password"
+						placeholder="Choose a safe password"
+					/>
+				</div>
+				<div className="flex mt3">
+					<button
+						type="submit"
+						className="pointer mr2 button"
+						onClick={() => {
+							formState.login ? login() : signup()
+						}}
+					>
+						{formState.login ? "login" : "create account"}
+					</button>
+					<button
+						className="pointer button"
+						onClick={(e) =>
+							setFormState({
+								...formState,
+								login: !formState.login,
+							})
+						}
+					>
+						{formState.login
+							? "need to create an account?"
+							: "already have an account?"}
+					</button>
+				</div>
+			</form>
 		</div>
 	);
 }
