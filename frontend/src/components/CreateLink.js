@@ -1,11 +1,13 @@
 import React, { useState } from "react";
 import { useMutation, gql } from "@apollo/client";
 import { useNavigate } from "react-router-dom";
+import FEED_QUERY from "./LinkList"
+import { LINKS_PER_PAGE } from "../constants";
 
 export default function CreateLink() {
 	const [formState, setFormState] = useState({ description: "", url: "" });
 
-	const history = useNavigate();
+	const navigate = useNavigate();
 
 	const CREATE_LINK_MUTATION = gql`
 		mutation PostMutation($url: String!, $description: String!) {
@@ -18,12 +20,40 @@ export default function CreateLink() {
 		}
 	`;
 
+	/*
+	Error: Argument id for data.postedBy.connect.id must not be null. 
+	Please use undefined instead.
+	*/
 	const [createLink] = useMutation(CREATE_LINK_MUTATION, {
 		variables: {
 			description: formState.description,
 			url: formState.url,
 		},
-		onCompleted: () => history.push("/")
+		update: (cache, { data: { post } }) => {
+			const take = LINKS_PER_PAGE;
+			const skip = 0;
+			const orderBy = { createdAt: "desc" };
+
+			const data = cache.readQuery({
+				query: FEED_QUERY,
+				variables: {
+					take,
+					skip,
+					orderBy,
+				},
+			});
+
+			cache.writeQuery({
+				query: FEED_QUERY,
+				data: { feed: { links: [post, ...data.feed.links] } },
+				variables: {
+					take,
+					skip,
+					orderBy,
+				},
+			});
+		},
+		onCompleted: () => navigate("/"),
 	});
 
 	return (
@@ -38,7 +68,6 @@ export default function CreateLink() {
 					<input
 						type="text"
 						className="mt2"
-						type="text"
 						placeholder="A description for the link"
 						onChange={(e) =>
 							setFormState({
