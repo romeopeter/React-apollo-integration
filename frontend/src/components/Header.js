@@ -1,9 +1,9 @@
 import React from "react";
 import { useNavigate, Link } from "react-router-dom";
-import AUTH_TOKEN from ".../constants";
+import { AUTH_TOKEN } from "../constants";
 
 export default function Header() {
-	const history = useNavigate();
+	let navigate = useNavigate();
 	const authToken = localStorage.getItem(AUTH_TOKEN);
 
 	return (
@@ -36,7 +36,7 @@ export default function Header() {
 						className="ml1 pointer black"
 						onClick={() => {
 							localStorage.removeItem(AUTH_TOKEN);
-							history.push(`/`);
+							navigate(`/`);
 						}}
 					>
 						logout
