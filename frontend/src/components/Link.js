@@ -1,5 +1,6 @@
 import React from "react";
 import { useMutation, gql } from "@apollo/client";
+import FEED_QUERY from "./LinkList"
 import { AUTH_TOKEN, LINKS_PER_PAGE } from "../constants";
 import timeDifferenceForDate from "../utils";
 
@@ -39,7 +40,7 @@ export default function Link(props) {
 		variables: {
 			linkId: link.id,
 		},
-		update(cache, { data: { vote } }) {
+		update: (cache, { data: { vote } }) => {
 			const feed = cache.readQuery({ query: FEED_QUERY });
 
 			const updateLinks = feed.links.map((feedLink) => {
@@ -82,8 +83,8 @@ export default function Link(props) {
 				{authToken && (
 					<div className="6 lh-copy gray">
 						{link.votes.length} votes |{" "}
+						{timeDifferenceForDate(link.createdAt)} | {" "}
 						{link.postedBy ? link.postedBy.name : "Unknown"}{" "}
-						{timeDifferenceForDate(link.createdAt)}
 					</div>
 				)}
 			</div>
