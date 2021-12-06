@@ -45,7 +45,7 @@ export default function Login() {
 	);
 
 	const LOGIN_MUTATION = gql`
-		mutation LoginMutation($email: string, $password: string) {
+		mutation LoginMutation($email: String!, $password: String!) {
 			login(email: $email, password: $password) {
 				token
 			}
@@ -60,14 +60,14 @@ export default function Login() {
 				password: formState.password,
 			},
 			onCompleted: ({ login }) => {
-				localStorage.setItem(AUTH_TOKEN, signup.token);
+				localStorage.setItem(AUTH_TOKEN, login.token);
 				navigate("/");
 			},
 		}
 	);
 
 	if (signupError) return <p>Submition error: {signupError.message}</p>;
-	if (loginError) return <p>Submition error: {signupError.message}</p>;
+	if (loginError) return <p>Login error: {loginError.message}</p>;
 
 	return (
 		<div>
@@ -130,8 +130,8 @@ export default function Login() {
 						}
 					>
 						{formState.login
-							? "need to create an account?"
-							: "already have an account?"}
+							? "Need to create an account?"
+							: "Already have an account?"}
 					</button>
 				</div>
 			</form>
